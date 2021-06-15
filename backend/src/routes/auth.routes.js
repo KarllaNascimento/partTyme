@@ -58,13 +58,51 @@ router.post("/register", async (req, res) =>{
       
       // return token
       
-      res.json({error: null, msg: "Você realuzou o cadastro com sucesso.", token: token, userId: newUser._id})
+      res.json({error: null, msg: "Você realizou o cadastro com sucesso.", token: token, userId: newUser._id})
 
    } catch (error) {
       res.status(400).json({error})
    }
 
 });
+
+// login an user / logar um usuário
+router.post("/login", async (req, res)=>{
+
+   const email = req.body.email;
+   const password = req.body.password;
+
+   // check if user exists / confirmar se o usuário existe
+   const user = await User.findOne({ email: email })
+
+   if(!user){
+      return res.status(400).json({error: "Não existe um usuário cadastrado com este e-mail!"})
+   }
+
+   //check if password match / confirmar se a senha corresponde a já cadastrada
+   const checkPassword = await bcrypt.compare(password, user.password);
+
+   if(!checkPassword){
+      return res.status(400).json({error: "Senha incorreta!"})
+   }
+
+   //create token 
+   const token = jwt.sign(
+      //payload / o que será possível acessar caso o token seja decodificado
+      {
+         name: user.name,
+         id: user._id
+      },
+      "nossoscret"
+   )
+   
+   // return token
+   
+   res.json({error: null, msg: "Você está autenticado!", token: token, userId: user._id})
+
+});
+
+
 
 
 
